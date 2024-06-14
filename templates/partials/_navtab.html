@@ -1,0 +1,9 @@
+<li class="nav-item">
+    <a href="{{ route }}" class="nav-link px-2 {% if off%}
+        disabled
+    {% elif request_path == route %}
+    active
+    {% endif %}">
+        {{name}}
+    </a>
+</li>

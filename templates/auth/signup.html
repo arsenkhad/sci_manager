@@ -1,0 +1,14 @@
+
+{% extends "auth/auth_base.html" %}
+
+
+{% block form %}
+<div class="form-floating">
+    <input type="text" class="form-control" id="{{ form.username.auto_id }}" name="{{ form.username.html_name }}" placeholder="Логин">
+    {{ form.username.label_tag }}
+</div>
+<div class="form-floating">
+    <input type="password" class="form-control" id="{{ form.password.auto_id }}" name="{{ form.password.html_name }}" placeholder="Пароль">
+    {{ form.password.label_tag }}
+</div>
+{% endblock %}

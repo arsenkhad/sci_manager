@@ -1,0 +1,24 @@
+{% if projects %}
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item d-flex justify-content-around align-items-center px-5 py-4">
+            <h4 class="m-0 col-8 col-md-4 text-start">Название</h4>
+            <h4 class="m-0 col-md-4 d-none d-md-block">Автор</h4>
+            <h4 class="m-0 col-md-2 d-none d-md-block">Создан</h4>
+            <h4 class="m-0 col-4 col-md-2">Изменён</h4>
+        </li>
+        {% for project in projects %}
+        <a href="/projects/{{project.project_id}}/" class="list-group-item list-group-item-action d-flex justify-content-around align-items-center px-5 py-4">
+            <div class="d-inline-flex col-8 col-md-4">
+                    <h6 class="m-0">{{ project.project_label }}</h6>
+                    <h6 class="badge rounded-pill text-bg-dark m-0 ms-2"> {{ project.project_code|upper|default:"NOCODE" }}</h6>
+            </div>
+            <p class="m-0 col-md-4 d-none d-md-block">{{ project.author_shortname|default:"Неизвестный автор" }}</p>
+            <p class="m-0 col-md-2 d-none d-md-block">{{ project.project_created|date:"d.m.y H:i:s" }}</p>
+            <p class="m-0 col-4 col-md-2">{{ project.project_updated|date:"d.m.y H:i:s" }}</p>
+        </a>
+        {% endfor %}
+    </ul>
+{% else %}
+    <h1>Здесь будут представлены Ваши проекты</h1>
+    <h3 class="text-body-secondary">Попробуйте создать новый проект</h3>
+{% endif %}

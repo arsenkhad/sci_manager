@@ -1,0 +1,26 @@
+{% if users %}
+    <ul class="list-group list-group-flush">
+        {% comment %} <li class="list-group-item d-flex justify-content-around align-items-center px-2">
+            <h4 class="m-0 col-md-5">Имя</h4>
+            <h4 class="m-0 col-md-3">Логин</h4>
+            <h4 class="m-0 col-md-4">Роль</h4>
+        </li> {% endcomment %}
+        {% for user in users %}
+        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center p-2">
+            <p class="m-0 mx-3">
+                {{ user.full_name }}
+                <span class="m-0 {% if user.full_name %}ms-3{% endif %} text-body-secondary small">{{ user.username }}</span>
+            </p>
+            <p class="m-0 mx-3">
+                {% if user.access == 2 %} Редактор
+                {% elif user.access == 3 %} Создатель
+                {% else %} Посетитель
+                {% endif %}
+            </p>
+        </a>
+        {% endfor %}
+    </ul>
+{% else %}
+    <h1>Участников нет</h1>
+    <h3 class="text-body-secondary">Попробуйте добавить нового участника</h3>
+{% endif %}

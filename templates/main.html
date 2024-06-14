@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}
+    Проекты
+{% endblock %}
+
+
+{% block page %}
+<div class="d-flex justify-content-center align-items-center flex-wrap">
+    <div class="card col-12 col-md-10">
+        <div class="card-header d-flex p-4 px-md-5">
+            <h3 class="card-title display-6 m-0">Проекты</h3>
+            <a href="/projects/add/" class="btn btn-success px-2 py-1 ms-auto d-flex align-items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-plus" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                <p class="fw-bold fs-5 m-0 py-1 px-2">Добавить проект</p>
+            </a>
+        </div>
+        <div class="card-body m-0 p-0" id="list-container">
+            {% if projects %}
+            {% include 'projects/project_list.html' with projects=projects %}
+            {% else %}
+            {% include 'placeholders/project_list.html' %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+    function fetchProjects() {
+        $.ajax({
+            url: '{% url "projects" %}',
+            type: 'GET',
+            success: function(html) {
+                $('#list-container').html(html);
+            },
+            error: function() {
+                alert("Error fetching HTML.");
+            }
+        });
+    }
+    
+    $(document).ready(fetchProjects);
+</script>
+{% endblock %}

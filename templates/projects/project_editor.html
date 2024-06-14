@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}
+Редактор проекта
+{% endblock %}
+
+{% block page %}
+{% load static %}
+
+<div id="graph-container" style="width: 800px; height: 600px; background: white"></div>
+<script src="{% static 'app.js' %}"></script>
+{% endblock %}
+

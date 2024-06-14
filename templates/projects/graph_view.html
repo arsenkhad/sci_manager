@@ -1,0 +1,208 @@
+<p id="hidden_json" style="display: none">{{graph}}</p>
+
+<script>
+
+    let json = $('#hidden_json').text()
+    console.log(json)
+    let graph = JSON.parse(json)
+    console.log(graph)
+
+    function positions(graphModel) {
+        var visited = new Set();
+        var branchEndPoints = new Set();
+        var paths = [];
+        startVertexId = '__BEGIN__'
+        endVertexId = '__END__'
+
+        visited.add(endVertexId);
+
+        function runEdges(vertexId, path = []) {
+            path.push(vertexId);
+            if (visited.has(vertexId)) {
+                branchEndPoints.add(vertexId);
+                paths.push([...path]);
+            } else {
+                visited.add(vertexId);
+                const edges = graphModel.vertices[vertexId].edges;
+                for (const edgeId in edges) {
+                    runEdges(edgeId, [...path]);
+                }
+            }
+        }
+
+        runEdges(startVertexId);
+
+        var cols = 0;
+        paths.forEach((path)=>{
+            ln = path.length;
+            if (cols < ln) {
+                cols = ln;
+            }
+        })
+        var main_row = paths[0].slice(0, -1);
+        main_row.length = cols;
+        main_row[cols-1] = endVertexId;
+        paths.shift();
+        var pos_map = [main_row];
+
+        var orderedEndpoints = [startVertexId, endVertexId];
+        for (let path of paths) {
+            let pathEndpoints = [startVertexId];
+            for (let vert of path) {
+                if (branchEndPoints.has(vert) &&!pathEndpoints.includes(vert)) {
+                    pathEndpoints.push(vert);
+                }
+            }
+
+            for (let i = 0; i < pathEndpoints.length; i++) {
+                if (!orderedEndpoints.includes(pathEndpoints[i])) {
+                    orderedEndpoints.splice(orderedEndpoints.indexOf(pathEndpoints[i - 1]) + 1, 0, pathEndpoints[i]);
+                }
+            }
+        }
+        
+        visited = new Set(main_row);
+        for (let endpoint of orderedEndpoints.toReversed()) {
+            var branches = paths.filter(path => path.includes(endpoint));
+            for (let branch of branches.sort((a, b) => b.length - a.length)) {
+                var col = 0;
+                var first = -1;
+                var last = -1;
+                var branchUnvisited = [];
+                for (let vertex of branch) {
+                    if (!visited.has(vertex)) {
+                        if (first < 0){
+                            first = col;
+                        }
+                        last = col;
+                        branchUnvisited[col] = vertex;
+                        visited.add(vertex);
+                        }
+                    col += 1;
+                }
+                var newChain = false;
+                var chainStart = -1;
+                var newLine = false;
+                var lastFull = false;
+                for (let i = 0; i < branchUnvisited.length; i++) {
+                    if (branchUnvisited[i] && !lastFull) {
+                        if (!newChain) {
+                            chainStart = i;
+                            newChain = true;
+                        }
+                        if(pos_map[0][i] && pos_map[pos_map.length-1][i]) {
+                            newLine = true;
+                        }
+
+                        if (i == (branchUnvisited.length - 1)) {
+                            lastFull = true;
+                            i--;
+                        }
+                    } else {
+                        if (newChain) {
+                            var lowerBusy = newLine;
+                            var upperBusy = newLine;
+
+                            if (!newLine) {
+                                for (let j = chainStart; j < i+1; j++) {
+                                    if(pos_map[0][j]) {
+                                        lowerBusy = true;
+                                    }
+                                    if(pos_map[pos_map.length-1][j]) {
+                                        upperBusy = true;
+                                    }
+                                }
+                            }
+
+                            if (lowerBusy && upperBusy) {
+                                pos_map.push(Array(cols));
+                                upperBusy = false;
+                            }
+
+                            if (!lowerBusy) {
+                                for (let j = chainStart; j < i+1; j++)
+                                    pos_map[0][j] = branchUnvisited[j];
+                            } else if (!upperBusy) {
+                                for (let j = chainStart; j < i+1; j++)
+                                    pos_map[pos_map.length - 1][j] = branchUnvisited[j];
+                            } else {
+                                console.log('ERROR');
+                            }
+                            newChain = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return pos_map;
+
+    }
+
+    function get_pos(graphModel) {
+        const pos_map = positions(graphModel);
+        const nodes_pos = new Map();
+        for (let row = 0; row < pos_map.length; row++)
+            for (let col = 0; col < pos_map[row].length; col++)
+                if (pos_map[row][col])
+                    nodes_pos.set(pos_map[row][col], {row, col});
+        return (node)=>{
+            return nodes_pos.get(node.id())
+        }
+    }
+
+
+    nodes = [];
+    edges = [];
+
+    for (const key in graph.vertices) {
+        const vertex = graph.vertices[key];
+        nodes.push({data: {id: vertex.id, label: ((vertex.label == '__BEGIN__' || vertex.label == '__END__') ? '' : vertex.label)}});
+        for (const [edgeKey, edgeValue] of Object.entries(vertex.edges)) {
+            edges.push({data: {source: edgeValue.cur_vertex, target: edgeValue.next_vertex}});
+        }
+    }
+
+
+    
+    var cy = cytoscape({
+        
+        container: document.getElementById('graph-view'), // container to render in
+    
+        elements: {nodes: nodes, edges: edges},
+        
+        style: [ // the stylesheet for the graph
+            {
+                selector: 'node',
+                style: {
+                    'width' : '50',
+                    'height' : '50',
+                    'background-color': '#06b',
+                    'label': 'data(label)',
+                    'color': '#fff',
+                    'text-halign' : 'center',
+                    'text-valign' : 'center',
+                }
+            },
+        
+            {
+                selector: 'edge',
+                style: {
+                    'width': 5,
+                    'line-color': '#004',
+                    'target-arrow-color': '#004',
+                    'target-arrow-shape': 'triangle',
+                    'curve-style': 'bezier'
+                }
+            }
+        ],
+        
+        layout: {
+            name: 'grid',
+            position: get_pos(graph),
+        }
+    
+    });
+
+</script>
+
